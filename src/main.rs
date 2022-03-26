@@ -27,6 +27,7 @@ impl CPU {
     fn run(&mut self) {
         let opcode = self.read_opcode();
 
+        // decoding opcode
         let c = ((opcode & 0xF000) >> 12) as u8;
         let x = ((opcode & 0x0F00) >> 8) as u8;
         let y = ((opcode & 0x00F0) >> 4) as u8;
