@@ -19,16 +19,16 @@ impl CPU {
     }
 
     fn read_opcode(&mut self) -> u16 {
-        let p = self.position_in_memory;
-        let op_byte1 = self.memory[p] as u16;
-        let op_byte2 = self.memory[p + 1] as u16;
+        let op_byte1 = self.memory[self.position_in_memory] as u16;
+        self.position_in_memory += 1;
+        let op_byte2 = self.memory[self.position_in_memory] as u16;
+        self.position_in_memory += 1;
         op_byte1 << 8 | op_byte2
     }
 
     fn run(&mut self) {
         loop {
             let opcode = self.read_opcode();
-            self.position_in_memory += 2;
 
             // decoding opcode
             /*
