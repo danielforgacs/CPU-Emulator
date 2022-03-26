@@ -11,7 +11,7 @@ struct CPU {
     position_in_memory: usize,
     memory: [u8; 0x1000],
     stack: [u16; 16],
-    stack_pointer: u16,
+    stack_pointer: usize,
 }
 
 impl CPU {
@@ -41,19 +41,46 @@ impl CPU {
             /*
             ADD         0x8014      add register 1 to register 0, store result in register 0
             CALL        0x2nnn      nnn is memory address of a function
-            RETURN      0x00FF      sets mem position to previous CALL opcode
+            RETURN      0x00EE      sets mem position to previous CALL opcode
             */
             let c = ((opcode & 0xF000) >> 12) as u8;
             let x = ((opcode & 0x0F00) >> 8) as u8;
             let y = ((opcode & 0x00F0) >> 4) as u8;
             let d = ((opcode & 0x000F) >> 0) as u8;
+            let nnn = opcode & 0x0FFF;
+            // let kk = (opcode & 0x00FF) as u8;
 
             match (c, x, y, d) {
                 (0, 0, 0, 0) => { return; },
+                (0, 0, 0xE, 0xE) => self.ret(),
+                (0, _, _, _) => self.call(nnn),
                 (8, _, _, 4) => self.add(x, y),
                 _ => panic!("opcode not implemented: {:x}", opcode),
             };
         }
+    }
+
+    fn call(&mut self, addr: u16) {
+        let sp = self.stack_pointer;
+        let stack = &mut self.stack;
+
+        if sp > stack.len() {
+            panic!("stack overflow");
+        }
+
+        stack[sp] = self.position_in_memory as u16;
+        self.stack_pointer += 1;
+        self.position_in_memory = addr as usize;
+    }
+
+    fn ret(&mut self) {
+        if self.stack_pointer == 0 {
+            panic!("stack underflow.");
+        }
+
+        self.stack_pointer -= 1;
+        let addr = self.stack[self.stack_pointer];
+        self.position_in_memory = addr as usize;
     }
 
     fn add(&mut self, x: u8, y: u8) {
