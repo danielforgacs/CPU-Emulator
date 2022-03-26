@@ -1,10 +1,3 @@
-/*
-https://en.wikipedia.org/wiki/CHIP-8
-https://chip-8.github.io/links/
-https://github.com/mattmikolay/chip-8/wiki/CHIP%E2%80%908-Instruction-Set
-https://multigesture.net/articles/how-to-write-an-emulator-chip-8-interpreter/
-*/
-
 struct CPU {
     registers: [u8; 16],
     // Normally referred to as "program counter"
