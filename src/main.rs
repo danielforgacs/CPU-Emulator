@@ -103,7 +103,7 @@ fn main() {
 
     cpu.registers[0] = 5;
     cpu.registers[1] = 10;
-//
+
     let mem = &mut cpu.memory;
 
     mem[0x000] = 0x21; mem[0x001] = 0x00;
