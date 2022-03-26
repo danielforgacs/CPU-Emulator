@@ -19,6 +19,9 @@ impl CPU {
     }
 
     fn read_opcode(&mut self) -> u16 {
+        /* Memory is 1 byte,
+        opcodes are 2 bytes:
+        2 mem addresses need to be read for 1 opcode. */
         let op_byte1 = self.memory[self.position_in_memory] as u16;
         self.position_in_memory += 1;
         let op_byte2 = self.memory[self.position_in_memory] as u16;
