@@ -53,20 +53,6 @@ impl CPU {
     fn run(&mut self) {
         loop {
             let opcode = self.read_opcode();
-
-            // // decoding opcode
-            // /*
-            // ADD         0x8014      add register 1 to register 0, store result in register 0
-            // CALL        0x2nnn      nnn is memory address of a function
-            // RETURN      0x00EE      sets mem position to previous CALL opcode
-            // */
-            // let c = ((opcode & 0xF000) >> 12) as u8;
-            // let x = ((opcode & 0x0F00) >> 8) as u8;
-            // let y = ((opcode & 0x00F0) >> 4) as u8;
-            // let d = ((opcode & 0x000F) >> 0) as u8;
-            // let nnn = opcode & 0x0FFF;
-            // // let kk = (opcode & 0x00FF) as u8;
-
             let (c, x, y, d, nnn) = self.decode_opcode(opcode);
 
             match (c, x, y, d) {
