@@ -26,6 +26,9 @@ impl CPU {
         self.position_in_memory += 1;
         let op_byte2 = self.memory[self.position_in_memory] as u16;
         self.position_in_memory += 1;
+
+        /* To get the opcode, bits from each memory address
+        are converted to 16 bits then logicall OR together to get the original opcode. */
         op_byte1 << 8 | op_byte2
     }
 
