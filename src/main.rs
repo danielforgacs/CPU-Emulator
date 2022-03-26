@@ -10,6 +10,8 @@ struct CPU {
     // Normally referred to as "program counter"
     position_in_memory: usize,
     memory: [u8; 0x1000],
+    stack: [u16; 16],
+    stack_pointer: u16,
 }
 
 impl CPU {
@@ -18,6 +20,8 @@ impl CPU {
             registers: [0; 16],
             position_in_memory: 0,
             memory: [0; 4096],
+            stack: [0; 16],
+            stack_pointer: 0,
         }
     }
 
