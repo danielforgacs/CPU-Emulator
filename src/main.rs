@@ -1,10 +1,3 @@
-/*
-https://en.wikipedia.org/wiki/CHIP-8
-https://chip-8.github.io/links/
-https://github.com/mattmikolay/chip-8/wiki/CHIP%E2%80%908-Instruction-Set
-https://multigesture.net/articles/how-to-write-an-emulator-chip-8-interpreter/
-*/
-
 struct CPU {
     registers: [u8; 16],
     // Normally referred to as "program counter"
@@ -26,29 +19,41 @@ impl CPU {
     }
 
     fn read_opcode(&mut self) -> u16 {
-        let p = self.position_in_memory;
-        let op_byte1 = self.memory[p] as u16;
-        let op_byte2 = self.memory[p + 1] as u16;
+        /* Memory is 1 byte,
+        opcodes are 2 bytes:
+        2 mem addresses need to be read for 1 opcode. */
+        let op_byte1 = self.memory[self.position_in_memory] as u16;
+        self.position_in_memory += 1;
+        let op_byte2 = self.memory[self.position_in_memory] as u16;
+        self.position_in_memory += 1;
+
+        /* To get the opcode, bits from each memory address
+        are converted to 16 bits then logicall OR together to get the original opcode. */
         op_byte1 << 8 | op_byte2
+    }
+
+    fn decode_opcode(&self, opcode: u16) -> (u8, u8, u8, u8, u16) {
+        // decoding opcode
+        /*
+        ADD         0x8014      add register 1 to register 0, store result in register 0
+        CALL        0x2nnn      nnn is memory address of a function
+        RETURN      0x00EE      sets mem position to previous CALL opcode
+        */
+        let c = ((opcode & 0xF000) >> 12) as u8;
+        let x = ((opcode & 0x0F00) >> 8) as u8;
+        let y = ((opcode & 0x00F0) >> 4) as u8;
+        let d = ((opcode & 0x000F) >> 0) as u8;
+        let nnn = opcode & 0x0FFF;
+        // Unused so far:
+        // let kk = (opcode & 0x00FF) as u8;
+
+        (c, x, y, d, nnn)
     }
 
     fn run(&mut self) {
         loop {
             let opcode = self.read_opcode();
-            self.position_in_memory += 2;
-
-            // decoding opcode
-            /*
-            ADD         0x8014      add register 1 to register 0, store result in register 0
-            CALL        0x2nnn      nnn is memory address of a function
-            RETURN      0x00EE      sets mem position to previous CALL opcode
-            */
-            let c = ((opcode & 0xF000) >> 12) as u8;
-            let x = ((opcode & 0x0F00) >> 8) as u8;
-            let y = ((opcode & 0x00F0) >> 4) as u8;
-            let d = ((opcode & 0x000F) >> 0) as u8;
-            let nnn = opcode & 0x0FFF;
-            // let kk = (opcode & 0x00FF) as u8;
+            let (c, x, y, d, nnn) = self.decode_opcode(opcode);
 
             match (c, x, y, d) {
                 (0, 0, 0, 0) => { return; },
@@ -106,16 +111,18 @@ fn main() {
 
     let mem = &mut cpu.memory;
 
-    mem[0x000] = 0x21; mem[0x001] = 0x00;
-    mem[0x002] = 0x21; mem[0x003] = 0x00;
-    mem[0x004] = 0x00; mem[0x005] = 0x00;
+    // Adding 2 byte opcodes to 1 byte memory
+    mem[0x000] = 0x21; mem[0x001] = 0x00;   // 0x2100       CALL, mem 0x100
+    mem[0x002] = 0x21; mem[0x003] = 0x00;   // 0x2100       CALL, mem 0x100
+    mem[0x004] = 0x00; mem[0x005] = 0x00;   // 0x0000       NOOP
 
-    mem[0x100] = 0x80; mem[0x101] = 0x14;
-    mem[0x102] = 0x80; mem[0x103] = 0x14;
-    mem[0x104] = 0x00; mem[0x105] = 0xEE;
+    // The next 3 line act as a function with the stack.
+    mem[0x100] = 0x80; mem[0x101] = 0x14;   // 0x8014       ADD, reg 0, reg 1, store result in reg 0
+    mem[0x102] = 0x80; mem[0x103] = 0x14;   // 0x8014       ADD, reg 0, reg 1, store result in reg 0
+    mem[0x104] = 0x00; mem[0x105] = 0xEE;   // 0x00EE       RETURN
 
     cpu.run();
 
     assert_eq!(cpu.registers[0], 45);
-    println!("finished properly.")
+    println!("finished properly.");
 }
